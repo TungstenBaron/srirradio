@@ -80,6 +80,26 @@ class SriRadioBot {
         this.client.on('error', (error) => {
             console.error('Discord client error:', error);
         });
+
+        // Add warning handler
+        this.client.on('warn', (warning) => {
+            console.warn('Discord client warning:', warning);
+        });
+
+        // Add disconnect handler
+        this.client.on('disconnect', () => {
+            console.warn('Discord client disconnected, attempting to reconnect...');
+        });
+
+        // Add reconnecting handler
+        this.client.on('reconnecting', () => {
+            console.log('Discord client reconnecting...');
+        });
+
+        // Add resumed handler
+        this.client.on('resume', () => {
+            console.log('Discord client resumed connection');
+        });
     }
 
     setupWebServer() {
@@ -91,7 +111,17 @@ class SriRadioBot {
                 status: 'online',
                 bot: this.client.user?.tag || 'Not ready',
                 uptime: process.uptime(),
-                playing: this.isPlaying
+                playing: this.isPlaying,
+                timestamp: new Date().toISOString()
+            });
+        });
+
+        // Health check endpoint for Railway
+        app.get('/health', (req, res) => {
+            res.status(200).json({ 
+                status: 'healthy',
+                bot_online: this.client.readyAt !== null,
+                uptime: process.uptime()
             });
         });
 
